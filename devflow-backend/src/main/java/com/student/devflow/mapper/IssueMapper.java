@@ -10,7 +10,7 @@ import java.util.List;
 public interface IssueMapper extends BaseMapper<Issue>{
     @Select("WITH RECURSIVE task_tree AS (" +
             " /* 1. 锚点: 查找指定的根任务 */ " +
-            " SELECT * FROM issue WHERE id = #{rootId} " +
+            " SELECT id,  project_id AS projectId, title, description, type, status, priority, parent_id AS parentId, assignee_id AS assigneeId, created_at AS createdAt, updated_at AS updatedAT FROM issue WHERE id = #{rootId} " +
             "UNION ALL " +
             " /* 2. 递归: 查找子任务 (当前表的id = 子表的parent_id */" +
             " SELECT child.* FROM issue child " +

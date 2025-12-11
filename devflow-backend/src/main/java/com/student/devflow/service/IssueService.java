@@ -6,4 +6,6 @@ import com.student.devflow.entity.vo.IssueTreeVO;
 
 public interface IssueService extends IService<Issue>{
     IssueTreeVO getIssueTree(Long rootId);
+
+    void updateIssueStatus(Issue issue);
 }

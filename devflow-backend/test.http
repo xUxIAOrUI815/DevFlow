@@ -1,0 +1,7 @@
+PUT http://localhost:8080/issue/update
+Content-Type: application/json
+
+{
+  "id": 4,
+  "status": 1
+}

@@ -8,6 +8,7 @@ import com.student.devflow.service.IssueService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,5 +62,18 @@ public class IssueServiceImpl extends ServiceImpl<IssueMapper, Issue> implements
         }
 
         return root;
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)   // 开启事务
+    public void updateIssueStatus(Issue issue){
+        // 1. 校验 ID 是否存在
+        if(issue.getId() == null){
+            throw new RuntimeException("ID can not be null");
+        }
+
+        // 2. 更新
+        issueMapper.updateById(issue);
     }
 }
