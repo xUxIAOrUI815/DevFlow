@@ -23,33 +23,74 @@ public class IssueServiceImpl extends ServiceImpl<IssueMapper, Issue> implements
     @Autowired
     private IssueMapper issueMapper;
 
+//    @Override
+//    public IssueTreeVO getIssueTree(Long rootId){
+//        // 1. 先用递归 SQL 查出所有相关的扁平数据
+//        List<Issue> flatList = issueMapper.selectIssueTree(rootId);
+//
+//        if(flatList.isEmpty()){
+//            return null;
+//        }
+//
+//        // 2. 将 Issue 转换成 IssueTreeVO
+//        List<IssueTreeVO> voList = new ArrayList<>();
+//        for(Issue issue : flatList){
+//            IssueTreeVO vo = new IssueTreeVO();
+//            BeanUtils.copyProperties(issue, vo);        // 复制属性
+//            voList.add(vo);
+//        }
+//
+//        // 3. 利用 Map 将扁平 List 组装成 Tree
+//        // 因为返回结果是二维表格，没有体现包含关系
+//        Map<Long, IssueTreeVO> map = voList.stream()
+//            .collect(Collectors.toMap(IssueTreeVO::getId, Function.identity()));
+//
+//        IssueTreeVO root = null;
+//
+//        for(IssueTreeVO node : voList){
+//            if(node.getId().equals(rootId)){
+//                root = node;
+//            }else{
+//                IssueTreeVO parent = map.get(node.getParentId());
+//                if(parent != null){
+//                    if(parent.getChildren() == null){
+//                        parent.setChildren(new ArrayList<>());
+//                    }
+//                    parent.getChildren().add(node);
+//                }
+//            }
+//        }
+//
+//        return root;
+//    }
+
     @Override
-    public IssueTreeVO getIssueTree(Long rootId){
-        // 1. 先用递归 SQL 查出所有相关的扁平数据
-        List<Issue> flatList = issueMapper.selectIssueTree(rootId);
+    public List<IssueTreeVO> getProjectIssueTree(Long projectId){
+        // 1. 查出该项目下的所有相关任务
+        List<Issue> flatList = issueMapper.selectTreeByProject(projectId);
 
         if(flatList.isEmpty()){
-            return null;
+            return new ArrayList<>();
         }
 
-        // 2. 将 Issue 转换成 IssueTreeVO
+        // 2. 转换 VO
         List<IssueTreeVO> voList = new ArrayList<>();
         for(Issue issue : flatList){
             IssueTreeVO vo = new IssueTreeVO();
-            BeanUtils.copyProperties(issue, vo);        // 复制属性
+            BeanUtils.copyProperties(issue, vo);
             voList.add(vo);
         }
 
-        // 3. 利用 Map 将扁平 List 组装成 Tree
-        // 因为返回结果是二维表格，没有体现包含关系
+        // 3. 组装 Map
         Map<Long, IssueTreeVO> map = voList.stream()
-            .collect(Collectors.toMap(IssueTreeVO::getId, Function.identity()));
+                .collect(Collectors.toMap(IssueTreeVO::getId, Function.identity()));
 
-        IssueTreeVO root = null;
+        // 4. 组装树
+        List<IssueTreeVO> roots = new ArrayList<>();
 
-        for(IssueTreeVO node : voList){
-            if(node.getId().equals(rootId)){
-                root = node;
+        for (IssueTreeVO node : voList){
+            if(node.getParentId() == null){
+                roots.add(node);
             }else{
                 IssueTreeVO parent = map.get(node.getParentId());
                 if(parent != null){
@@ -60,8 +101,7 @@ public class IssueServiceImpl extends ServiceImpl<IssueMapper, Issue> implements
                 }
             }
         }
-
-        return root;
+        return roots;
     }
 
 
