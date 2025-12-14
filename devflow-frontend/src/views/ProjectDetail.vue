@@ -6,6 +6,7 @@
         <span class="text-large font-600 mr-3"> 项目详情 (ID: {{ projectId }}) </span>
       </template>
       <template #extra>
+        <el-button @click="openMemberDialog"> 成员管理 </el-button>
         <!-- 视图切换 -->
         <el-radio-group v-model="viewMode" size="small" style="margin-right: 20px;">
           <el-radio-button label="tree">树形表格</el-radio-button>
@@ -176,7 +177,39 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 成员管理弹窗 -->
+    <el-dialog v-model="memberDialogVisible" title="成员管理" width="600px">
+      <!-- 添加区域 -->
+      <div style = "display: flex; gap: 10px; margin-bottom: 20px; background: #f5f7fa; padding: 15px; border-radius: 4px;">
+        <el-select v-model="newMemberForm.userId" placeholder="选择用户" style="width: 200px;">
+          <el-option v-for="u in userList" :key="u.id" :label="u.realName" :value="u.id" />
+        </el-select>
+        <el-select v-model="newMemberForm.role" placeholder="选择角色" style="width: 120px;">
+          <el-option label="普通成员" :value="1" />
+          <el-option label="管理员" :value="2" />
+        </el-select>
+        <el-button type="primary" @click="submitAddMember">添加进入项目</el-button>
+      </div>
+    </el-dialog>
   </div>
+
+  <!-- 列表区域 -->
+  <el-table :data="memberList" border stripe>
+    <el-table-column label="姓名" prop="realName"/>
+    <el-table-column lable="角色" align="center">
+      <template #default="scope">
+        <el-tag v-if="scope.row.role === 2" type="danger"> 管理员 </el-tag>
+        <el-tag v-else> 普通成员 </el-tag>
+      </template>
+    </el-table-column>
+    <el-table-column label="加入时间" prop="joinedAt" width="180"/>
+    <el-table-column ;abel="操作" align="center" width="100">
+      <template #default="scope">
+        <el-button type="danger" link size="small" @click="handleRemoveMember(scope.row.id)">移除</el-button>
+      </template>
+    </el-table-column>
+  </el-table>
 </template>
 
 <script setup>
@@ -185,6 +218,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import draggable from 'vuedraggable'
 import { ElMessage } from 'element-plus'
+import { getProjectMembers, addMember, removeMember} from "@/api/user";
 
 // 2. 引入所有 API (包括用户接口)
 import { getIssueTree, addIssue, getIssueList, updateIssue } from '@/api/issue'
@@ -198,6 +232,9 @@ const projectId = route.params.id
 const viewMode = ref('tree') // tree 或 kanban
 const loading = ref(false)
 const dialogVisible = ref(false)
+const memberDialogVisible = ref(false)
+const memberList = ref([])
+const newMemberForm = reactive({userId: null, role: 1})
 
 // 数据源
 const treeData = ref([])  // 树形数据
@@ -291,6 +328,43 @@ const onDragChange = (evt, targetStatus) => {
       item.status = targetStatus // 更新本地状态
     })
   }
+}
+
+// 打开成员管理弹窗
+const openMemberDialog = async () => {
+  memberDialogVisible.value = true
+  loadMembers()
+}
+
+// 加载成员列表
+const loadMembers = async () => {
+  try {
+    const res = await getProjectMembers(projectId)
+    memberList.value = res
+  }catch(err){ console.error(err)}
+}
+
+// 添加成员
+const submitAddMember = async () => {
+  if(!newMemberForm.userId) return ElMessage.warning("请选择用户")
+  try {
+    await addMember({
+      projectId: projectId,
+      userId: newMemberForm.userId,
+      role: newMemberForm.role
+    })
+    ElMessage.success("添加成功")
+    loadMembers()
+  }catch (err){ console.error(err)}
+}
+
+// 移除成员
+const removeMember = async (id) => {
+  try {
+    await removeMember(id)
+    ElMessage.success("已移除")
+    loadMembers()
+  }catch (err) { console.error(err)}
 }
 
 // 监听视图切换
