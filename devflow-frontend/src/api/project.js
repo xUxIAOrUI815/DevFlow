@@ -7,3 +7,12 @@ export function getProjectList(){
         method:'get'
     })
 }
+
+// 创建项目
+export function addProject(data){
+  return request({
+    url:'/project/add',
+    method:'post',
+    data
+  })
+}

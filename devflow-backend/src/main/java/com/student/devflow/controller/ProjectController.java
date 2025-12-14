@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/project")
-@CrossOrigin
+@CrossOrigin        // 允许跨域
 public class ProjectController {
 
     @Autowired
@@ -21,8 +21,9 @@ public class ProjectController {
         return Result.success(projectService.getProjectList());
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public Result<String> add(@RequestBody Project project){
+        System.out.println("接受到新项目请求: "+project);
         projectService.save(project);
         return Result.success("Created SUCCESS! ");
     }

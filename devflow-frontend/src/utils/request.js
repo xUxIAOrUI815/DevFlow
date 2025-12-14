@@ -10,7 +10,11 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
     config => {
-        return config
+      const token = localStorage.getItem('token')
+      if (token) {
+        config.headers['Authorization'] = token
+      }
+      return config
     },
     error => {
         return Promise.reject(error)
@@ -29,9 +33,12 @@ service.interceptors.response.use(
         }
     },
     error => {
-        console.log('err' + error)
-        ElMessage.error(error.message)
-        return Promise.reject(error)
+      if (error.response && error.response.status === 401) {
+        localStorage.removeItem('token')
+        window.location.href = '/login'
+      }
+      ElMessage.error(error.message)
+      return Promise.reject(error)
     }
 )
 
