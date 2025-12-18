@@ -9,6 +9,6 @@ public class ProjectMemberVO {
     private Long userId;
     private String realName;    // 从 sys_user 中获取
     private String avatar;      // 从 sys_user 中获取
-    private Integer role;
+    private Integer role;       // 角色
     private LocalDateTime joinedAt;
 }

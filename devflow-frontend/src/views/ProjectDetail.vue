@@ -1,22 +1,50 @@
 <template>
   <div style="padding: 20px;">
     <!-- 1. 顶部导航与操作栏 -->
-    <el-page-header @back="goBack" title="返回项目列表">
-      <template #content>
-        <span class="text-large font-600 mr-3"> 项目详情 (ID: {{ projectId }}) </span>
-      </template>
-      <template #extra>
-        <el-button @click="openMemberDialog"> 成员管理 </el-button>
-        <!-- 视图切换 -->
-        <el-radio-group v-model="viewMode" size="small" style="margin-right: 20px;">
-          <el-radio-button label="tree">树形表格</el-radio-button>
-          <el-radio-button label="kanban">敏捷看板</el-radio-button>
-        </el-radio-group>
-        <!-- 新建任务按钮 -->
-        <el-button type="primary" @click="openCreateDialog(null)">+ 新建任务</el-button>
-      </template>
-    </el-page-header>
-    <el-divider />
+<!--    <el-page-header @back="goBack" title="返回项目列表">-->
+<!--      <template #content>-->
+<!--        <span class="text-large font-600 mr-3"> 项目详情 (ID: {{ projectId }}) </span>-->
+<!--      </template>-->
+<!--      <template #extra>-->
+<!--        &lt;!&ndash; 成员管理 &ndash;&gt;-->
+<!--        <el-button @click="openMemberDialog"> 成员管理 </el-button>-->
+<!--        &lt;!&ndash; 视图切换 &ndash;&gt;-->
+<!--        <el-radio-group v-model="viewMode" size="small" style="margin-right: 20px;">-->
+<!--          <el-radio-button label="tree">树形表格</el-radio-button>-->
+<!--          <el-radio-button label="kanban">敏捷看板</el-radio-button>-->
+<!--        </el-radio-group>-->
+<!--        &lt;!&ndash; 新建任务按钮 &ndash;&gt;-->
+<!--        <el-button type="primary" @click="openCreateDialog(null)">+ 新建任务</el-button>-->
+<!--      </template>-->
+<!--    </el-page-header>-->
+<!--    <el-divider />-->
+
+    <div style="padding: 20px;">
+      <!-- 顶部标题与操作栏 -->
+      <div class="header-container">
+        <!-- 左侧: 返回按钮 + 标题 -->
+        <div class="header-left">
+          <el-button icon="ArrowLeft" @click="goBack" circle plain/>
+          <h2 class="title"> 项目详情 ( ID: {{ projectId }} )</h2>
+        </div>
+
+        <!-- 右侧: 操作按钮组 -->
+        <div class="header-right">
+          <!-- 成员管理 -->
+          <el-button type="default" @click="openMemberDialog"> 成员管理 </el-button>
+          <!-- 新建任务按钮 -->
+          <el-button type="primary" @click="openCreateDialog(null)" class="create-btn">
+            新建任务
+          </el-button>
+
+          <!-- 视图切换 -->
+          <el-radio-group v-model="viewMode" size="small" class="view-toggle">
+            <el-radio-button label="tree">树形表格</el-radio-button>
+            <el-radio-button label="kanban">敏捷看板</el-radio-button>
+          </el-radio-group>
+        </div>
+      </div>
+    </div>
 
     <!-- 2. 视图 A: 树形表格 -->
     <el-card shadow="never" v-if="viewMode === 'tree'">
@@ -191,25 +219,28 @@
         </el-select>
         <el-button type="primary" @click="submitAddMember">添加进入项目</el-button>
       </div>
+
+      <!-- 列表区域 -->
+      <el-table :data="memberList" border stripe>
+        <el-table-column label="姓名" prop="realName"/>
+        <el-table-column lable="角色" align="center">
+          <template #default="scope">
+            <el-tag v-if="scope.row.role === 2" type="danger"> 管理员 </el-tag>
+            <el-tag v-else> 普通成员 </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="加入时间" prop="joinedAt" width="180"/>
+        <el-table-column ;abel="操作" align="center" width="100">
+          <template #default="scope">
+            <el-button type="danger" link size="small" @click="handleRemoveMember(scope.row.id)">移除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
     </el-dialog>
   </div>
 
-  <!-- 列表区域 -->
-  <el-table :data="memberList" border stripe>
-    <el-table-column label="姓名" prop="realName"/>
-    <el-table-column lable="角色" align="center">
-      <template #default="scope">
-        <el-tag v-if="scope.row.role === 2" type="danger"> 管理员 </el-tag>
-        <el-tag v-else> 普通成员 </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column label="加入时间" prop="joinedAt" width="180"/>
-    <el-table-column ;abel="操作" align="center" width="100">
-      <template #default="scope">
-        <el-button type="danger" link size="small" @click="handleRemoveMember(scope.row.id)">移除</el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+
 </template>
 
 <script setup>
@@ -359,7 +390,7 @@ const submitAddMember = async () => {
 }
 
 // 移除成员
-const removeMember = async (id) => {
+const handleRemoveMember = async (id) => {
   try {
     await removeMember(id)
     ElMessage.success("已移除")
@@ -380,6 +411,35 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 顶部标题与操作栏容器 */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 左侧区域 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 顶部标题 */
+.title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+}
+
+/* 右侧操作按钮 */
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
 /* 看板容器 */
 .kanban-container {
   display: flex;
