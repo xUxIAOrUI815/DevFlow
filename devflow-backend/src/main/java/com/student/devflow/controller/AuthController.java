@@ -43,16 +43,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public Result<String> register(@RequestBody SysUser registerForm) {
+    public Result<String> register(@RequestBody SysUser user) {
 
-        // 1. 验证用户名是否已存在
-        QueryWrapper<SysUser> query = new QueryWrapper<>();
-        query.eq("username",registerForm.getUsername());
-        SysUser user = sysUserService.getOne(query);
-        if(user != null){
-            return Result.error("用户名已存在");
+        try {
+            sysUserService.register(user);
+            return Result.success("注册成功，请登录");
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-        sysUserService.save(registerForm);
-        return Result.success("注册成功");
     }
 }
