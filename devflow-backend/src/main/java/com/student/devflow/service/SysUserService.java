@@ -5,4 +5,8 @@ import com.student.devflow.entity.SysUser;
 
 public interface SysUserService extends IService<SysUser>{
     // 登录校验、重置密码
+
+    // 注册
+    void register(SysUser user);
 }
+
